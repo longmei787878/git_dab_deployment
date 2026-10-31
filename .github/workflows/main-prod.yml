@@ -19,7 +19,7 @@ jobs:
     environment: prod
     env:
       DATABRICKS_HOST: https://dbc-4d3c1c22-646c.cloud.databricks.com
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN_PROD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
