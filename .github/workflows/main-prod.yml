@@ -1,0 +1,44 @@
+name: Main branch to prod
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: booking-enrichment-prod
+  cancel-in-progress: false
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      DATABRICKS_HOST: https://dbc-4d3c1c22-646c.cloud.databricks.com
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install test dependencies
+        run: pip install -e ".[dev]"
+      - name: Run unit tests
+        run: pytest
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+      - name: Validate prod bundle
+        run: databricks bundle validate -t prod
+      - name: Deploy to prod
+        run: databricks bundle deploy -t prod
+      - name: Run prod smoke test
+        run: databricks bundle run -t prod booking_enrichment
